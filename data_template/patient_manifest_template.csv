@@ -1,0 +1,10 @@
+ID,cohort,event,Rscore,MWT,LAs,LVGRS,LVGLS,image_path,image_exists
+1,development,1,-1.388,20.18,10.10,26.20,-12.25,./data/raw_dicom/train/1,True
+2,development,0,-0.714,18.06,25.20,33.75,-19.93,./data/raw_dicom/train/2,True
+3,development,1,0.516,20.41,19.70,11.27,-10.96,./data/raw_dicom/train/3,True
+4,development,0,0.260,22.28,19.60,22.41,-13.65,./data/raw_dicom/train/4,True
+5,development,0,-0.412,17.50,15.30,28.40,-16.80,./data/raw_dicom/train/5,True
+1001,external_test,1,0.842,24.10,22.40,15.20,-11.10,./data/raw_dicom/external/1001,True
+1002,external_test,0,-1.120,16.80,14.50,35.10,-21.30,./data/raw_dicom/external/1002,True
+1003,external_test,1,0.315,19.90,18.20,18.60,-13.40,./data/raw_dicom/external/1003,True
+1004,external_test,0,-0.550,18.20,16.80,30.50,-18.20,./data/raw_dicom/external/1004,True

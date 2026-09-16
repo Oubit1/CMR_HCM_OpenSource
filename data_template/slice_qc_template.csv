@@ -1,0 +1,8 @@
+cohort,ID,slice_index,series_uid,slice_coordinate,frame_count,height,width,frame_source,output_path
+development,1,1,1.2.840.113704.7.32.001,13.0,30,288,288,TriggerTime,./data/processed_sax_cine/development/images/cmr/patient0001_slice01.nii.gz
+development,1,2,1.2.840.113704.7.32.001,21.0,30,288,288,TriggerTime,./data/processed_sax_cine/development/images/cmr/patient0001_slice02.nii.gz
+development,1,3,1.2.840.113704.7.32.001,29.0,30,288,288,TriggerTime,./data/processed_sax_cine/development/images/cmr/patient0001_slice03.nii.gz
+development,2,1,1.2.840.113704.7.32.002,15.0,30,288,288,TriggerTime,./data/processed_sax_cine/development/images/cmr/patient0002_slice01.nii.gz
+development,2,2,1.2.840.113704.7.32.002,23.0,30,288,288,TriggerTime,./data/processed_sax_cine/development/images/cmr/patient0002_slice02.nii.gz
+external_test,1001,1,1.2.840.113704.7.32.101,12.0,30,256,256,TriggerTime,./data/processed_sax_cine/external_test/images/cmr/patient1001_slice01.nii.gz
+external_test,1001,2,1.2.840.113704.7.32.101,20.0,30,256,256,TriggerTime,./data/processed_sax_cine/external_test/images/cmr/patient1001_slice02.nii.gz
