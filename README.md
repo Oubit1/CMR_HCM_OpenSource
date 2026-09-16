@@ -114,11 +114,38 @@ install.packages(c("readxl", "irr", "dplyr", "glmnet", "car", "pROC", "openxlsx"
 
 ---
 
-## 4. 数据准备与输入模板 (Data Preparation)
+## 4. 模型权重下载与配置 (Model Weights & Checkpoints)
+
+本项目提供预训练的基础模型骨干权重及锁定训练好的最终模型。所有权重文件均已托管发布至 GitHub Release：
+
+👉 **[下载地址：GitHub Release v1.0.0 页面](https://github.com/Oubit1/CMR_HCM_OpenSource/releases/tag/v1.0.0)**
+
+| 权重文件名 | 文件大小 | 推荐存放目录 | 作用与说明 |
+| :--- | :--- | :--- | :--- |
+| **`pretrained_cmr_backbone.ckpt`** | ~1.32 GB | `./checkpoints/` | 基础 CMR 时序 Transformer 预训练编码器骨干权重（用于微调训练 `train_attention_mil.py` 的初始化，模型骨干架构源自 *A Generalizable Deep Learning System for Cardiac MRI*） |
+| **`CatBoost_final.cbm`** | 267 KB | `./checkpoints/` | 锁定的最终 CatBoost 机器学习分类器模型（输入特征：`MWT`, `LAs`, `LVGRS`, `LVGLS`, `Rscore`） |
+| **`Rscore_locked_model.rds`** | 1.39 MB | `./checkpoints/` | 锁定的最终影像组学 LASSO 评分模型 (R-score Model Object) |
+
+#### 快速下载与部署指引：
+```bash
+# 在项目根目录下创建 checkpoints 目录
+mkdir -p checkpoints
+
+# 方式一：在 Release 页面下载后，直接拷贝到 checkpoints/ 目录中
+
+# 方式二：使用 wget 命令行直接下载到指定目录
+wget -O checkpoints/pretrained_cmr_backbone.ckpt https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/pretrained_cmr_backbone.ckpt
+wget -O checkpoints/CatBoost_final.cbm https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/CatBoost_final.cbm
+wget -O checkpoints/Rscore_locked_model.rds https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/Rscore_locked_model.rds
+```
+
+---
+
+## 5. 数据准备与输入模板 (Data Preparation)
 
 由于患者医疗数据隐私合规要求，原始影像不随代码公开发布。您只需按照 `data_template/` 中的样例格式组织本地数据：
 
-### 4.1 患者总清单 (`patient_manifest.csv`)
+### 5.1 患者总清单 (`patient_manifest.csv`)
 格式参考 `data_template/patient_manifest_template.csv`：
 - `ID`: 患者唯一识别编号
 - `cohort`: 所属队列 (`development` 或 `external_test`)
@@ -130,12 +157,12 @@ install.packages(c("readxl", "irr", "dplyr", "glmnet", "car", "pROC", "openxlsx"
 - `LVGLS`: 左室整体纵向应变 (Global Longitudinal Strain, %)
 - `image_path`: 患者原始 DICOM 目录或对应 NIfTI 路径
 
-### 4.2 切片质控与位置清单 (`slice_qc.csv`)
+### 5.2 切片质控与位置清单 (`slice_qc.csv`)
 格式参考 `data_template/slice_qc_template.csv`，记录短轴 cine 序列中各有效切片（Slice）的空间位置与对应文件路径。
 
 ---
 
-## 5. 分步复现操作指南 (Step-by-Step Guide)
+## 6. 分步复现操作指南 (Step-by-Step Guide)
 
 ### 阶段 1: 数据预处理与短轴质控
 ```bash
@@ -182,7 +209,7 @@ python models/classical_ml/run_tabular_benchmark.py \
 python models/deep_foundation/train_attention_mil.py \
   --manifest ./data/patient_manifest.csv \
   --slice-qc ./data/processed_sax_cine/slice_qc.csv \
-  --checkpoint ./checkpoints/pretrained_cmr.ckpt \
+  --checkpoint ./checkpoints/pretrained_cmr_backbone.ckpt \
   --output-dir ./results/foundation_mil \
   --arms Foundation \
   --device cuda
@@ -212,7 +239,7 @@ python multimodal_fusion/analyze_primary_xgboost_shap.py \
 
 ---
 
-## 6. 一键运行自动化流水线 (One-Click Pipeline)
+## 7. 一键运行自动化流水线 (One-Click Pipeline)
 
 本项目提供了预先封装好的端到端流水线脚本：
 
@@ -223,7 +250,7 @@ chmod +x scripts/run_pipeline.sh
 
 ---
 
-## 7. 开源协议与引用 (License & Citation)
+## 8. 开源协议与引用 (License & Citation)
 
 本项目采用 [MIT 许可证](LICENSE)。
 
@@ -236,3 +263,4 @@ chmod +x scripts/run_pipeline.sh
   year={2026}
 }
 ```
+
