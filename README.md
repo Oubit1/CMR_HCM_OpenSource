@@ -13,7 +13,7 @@
 本开源项目针对**肥厚型心肌病 (Hypertrophic Cardiomyopathy, HCM)** 患者的临床不良心血管事件预后评估，构建了一套端到端、多中心的**多模态融合预测体系**。
 
 项目深度整合了：
-1. **全流程影像组学 (Radiomics & R-score)**：基于晚期钆增强 (LGE) 图像，经过严格的双盲 ICC 稳定性筛选与训练折内嵌套防泄露降维，构建影像组学特征评分（R-score）。
+1. **全流程影像组学 (Radiomics & R-score)**：基于晚期钆增强 (LGE) 图像，经过双盲 ICC 稳定性筛选与训练折内嵌套防泄露降维，构建影像组学特征评分（R-score）。
 2. **深度时序基础模型 (CMR Transformer / MViT)**：从短轴动态 cine 序列中直接提取深层时空心功能表征，并通过切片级注意力多示例学习 (Attention-MIL) 完成端到端微调。
 3. **经典机器学习基线与多模态融合 (Multimodal Fusion)**：涵盖 SVM、Bagging、XGBoost、LightGBM、CatBoost 五大经典分类器，融合临床特征 (`MWT`, `LAs`, `LVGRS`, `LVGLS`)、影像组学 R-score 及深度基础表征。
 4. **完备的统计检验与可解释性分析**：包含 Bootstrap 95% 置信区间、DeLong 检验、净重新分类指数 (NRI)、综合判别改善指数 (IDI)、校准曲线 (Calibration Curve)、临床决策曲线 (DCA) 以及 SHAP 全局与局部特征归因。
@@ -192,7 +192,7 @@ python radiomics/build_rscore_oof.py \
   --output-dir ./results/rscore_oof
 ```
 
-### 阶段 3: 经典机器学习 5 大分类器评估
+### 阶段 3: 机器学习 5 种分类器评估
 ```bash
 # 运行 SVM, Bagging, XGBoost, LightGBM, CatBoost 重复嵌套交叉验证
 python models/classical_ml/run_tabular_benchmark.py \
@@ -224,7 +224,7 @@ python multimodal_fusion/run_foundation_comparison.py \
   --output-dir ./results/fusion_comparison
 ```
 
-### 阶段 6: 顶级期刊级统计评估与 SHAP 可解释性
+### 阶段 6: 统计评估与 SHAP 可解释性
 ```bash
 # 1. 计算 DeLong 检验、NRI、IDI、校准曲线与 DCA
 python multimodal_fusion/run_additional_statistics.py \
@@ -239,9 +239,9 @@ python multimodal_fusion/analyze_primary_xgboost_shap.py \
 
 ---
 
-## 7. 一键运行自动化流水线 (One-Click Pipeline)
+## 7. 一键运行(One-Click Pipeline)
 
-本项目提供了预先封装好的端到端流水线脚本：
+本项目提供了预先封装好的端到端运行脚本：
 
 ```bash
 chmod +x scripts/run_pipeline.sh
@@ -254,13 +254,8 @@ chmod +x scripts/run_pipeline.sh
 
 本项目采用 [MIT 许可证](LICENSE)。
 
-如果您在学术研究中使用了本项目代码或思路，请引用我们的研究工作：
+如果您在学术研究中使用了本项目代码或思路，请在论文发表后引用我们的研究工作：
 ```bibtex
-@article{cmr_hcm_prognosis_2026,
-  title={Multimodal Cardiovascular Magnetic Resonance for Prognostic Stratification in Hypertrophic Cardiomyopathy: Integrating Deep Foundation Models and Radiomics},
-  author={Research Group},
-  journal={Journal of Magnetic Resonance Imaging},
-  year={2026}
 }
 ```
 
