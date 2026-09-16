@@ -1,5 +1,5 @@
 # Multimodal CMR Prediction for Hypertrophic Cardiomyopathy (CMR-HCM)
-## 基于多模态心脏磁共振（CMR）的肥厚型心肌病不良预后预测系统
+## 基于多模态心脏磁共振（CMR）的肥厚型心肌病不良预后预测
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/)
