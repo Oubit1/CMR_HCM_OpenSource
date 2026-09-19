@@ -4,13 +4,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/)
 [![PyTorch: 1.11+](https://img.shields.io/badge/PyTorch-1.11%2B-red.svg)](https://pytorch.org/)
+[![R: 4.0+](https://img.shields.io/badge/R-4.0%2B-blue.svg)](https://www.r-project.org/)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)]()
 
 ---
 
 ## 1. 项目简介 (Overview)
 
-本开源项目针对**肥厚型心肌病 (Hypertrophic Cardiomyopathy, HCM)** 患者的临床不良心血管事件预后评估，构建了一套端到端、多中心的**多模态融合预测体系**。
+晚期钆增强 (Late Gadolinium Enhancement, LGE) 是评估肥厚型心肌病 (HCM) 心肌纤维化程度及不良预后的临床金标准，但需要注射钆对比剂，在肾功能不全患者中受限。
 
 项目深度整合了：
 1. **全流程影像组学 (Radiomics & R-score)**：基于晚期钆增强 (LGE) 图像，经过双盲 ICC 稳定性筛选与训练折内嵌套防泄露降维，构建影像组学特征评分（R-score）。
@@ -22,17 +23,15 @@
 
 ## 2. 核心架构与目录组织 (Repository Structure)
 
-本项目按照清晰的模块化架构组织，各阶段代码均独立解耦，可按需调用：
-
 ```text
 CMR_HCM_OpenSource/
-├── README.md                           # 开源项目主文档 (中英文指南)
+├── README.md                           # 开源项目主文档 (中英文使用指南)
 ├── requirements.txt                    # Python 依赖清单
 ├── environment.yaml                    # Conda 环境复现配置
 ├── LICENSE                             # MIT 开源协议
 │
 ├── configs/                            # 配置文件
-│   └── default_config.yaml             # 包含模型超参数、训练配置及默认路径
+│   └── default_config.yaml             # 包含超参数、训练配置及相对路径模板
 │
 ├── data_preparation/                   # 【模块一：数据预处理与质控】
 │   ├── build_manifest.py               # 构建队列患者清单 (开发集 & 外部验证集)
@@ -43,10 +42,12 @@ CMR_HCM_OpenSource/
 │   └── extract_acquisition_metadata.py # 提取厂商、机型、场强等扫描技术参数
 │
 ├── radiomics/                          # 【模块二：影像组学全流程】
-│   ├── feature_extraction.py           # 基于 PyRadiomics 的 LGE ROI 特征提取与标准化
+│   ├── feature_extraction.py           # 舒张末期短轴 cine 左室心肌 (LV Myocardium) ROI 特征提取
 │   ├── icc_reproducibility.R           # ICC(2,1) 双人重测特征可重复性与稳定性筛选
 │   ├── compare_icc_thresholds.py       # ICC 截断值 (0.80 vs 0.75) 敏感性比较
-│   ├── build_rscore_oof.py             # 严格训练折内无泄露 LASSO/ElasticNet R-score 构建
+│   ├── rscore_nested_oof_elasticnet.R  # 10折重复嵌套交叉验证弹性网络 (Elastic Net) R-score 构建
+│   ├── build_rscore_oof.py             # Python 版严控信息泄露 R-score 构建
+│   ├── cmr_parameter_lasso.R           # 10折交叉验证 LASSO 筛选核心 CMR 临床参数 (含 LAs, MWT 等)
 │   └── cmr_lasso_vif.R                 # 临床参数 LASSO 筛选与多重共线性 VIF 分析
 │
 ├── models/                             # 【模块三：模型构建与训练】
@@ -76,7 +77,7 @@ CMR_HCM_OpenSource/
 │   └── run_pipeline.sh                 # 端到端一键运行全流程脚本
 │
 └── data_template/                      # 【模块六：输入模板与格式说明】
-    ├── patient_manifest_template.csv   # 患者信息、临床变量与标签模板
+    ├── patient_manifest_template.csv   # 患者信息、临床变量与 LGE_status 标签模板
     └── slice_qc_template.csv           # 切片质控与位置信息模板
 ```
 
@@ -88,7 +89,7 @@ CMR_HCM_OpenSource/
 
 ```bash
 # 1. 克隆代码仓库
-git clone https://github.com/your-username/CMR_HCM_OpenSource.git
+git clone https://github.com/Oubit1/CMR_HCM_OpenSource.git
 cd CMR_HCM_OpenSource
 
 # 2. 通过 environment.yaml 创建独立 Conda 环境
@@ -99,17 +100,14 @@ conda activate cmr_hcm
 ### 方式二：Pip 安装核心依赖
 
 ```bash
-# 创建虚拟环境
 python3 -m venv venv
 source venv/bin/activate
-
-# 安装基础依赖
 pip install -r requirements.txt
 ```
 
-*若需运行 R 语言脚本（`icc_reproducibility.R` 与 `cmr_lasso_vif.R`），需在 R 环境中安装：*
+*若需运行 R 语言脚本（`rscore_nested_oof_elasticnet.R`、`cmr_parameter_lasso.R`、`icc_reproducibility.R`），需在 R 环境中安装：*
 ```R
-install.packages(c("readxl", "irr", "dplyr", "glmnet", "car", "pROC", "openxlsx"))
+install.packages(c("readxl", "irr", "dplyr", "glmnet", "caret", "car", "pROC", "openxlsx"))
 ```
 
 ---
@@ -124,16 +122,14 @@ install.packages(c("readxl", "irr", "dplyr", "glmnet", "car", "pROC", "openxlsx"
 | :--- | :--- | :--- | :--- |
 | **`pretrained_cmr_backbone.ckpt`** | ~1.32 GB | `./checkpoints/` | 基础 CMR 时序 Transformer 预训练编码器骨干权重（用于微调训练 `train_attention_mil.py` 的初始化，模型骨干架构源自 *A Generalizable Deep Learning System for Cardiac MRI*） |
 | **`CatBoost_final.cbm`** | 267 KB | `./checkpoints/` | 锁定的最终 CatBoost 机器学习分类器模型（输入特征：`MWT`, `LAs`, `LVGRS`, `LVGLS`, `Rscore`） |
-| **`Rscore_locked_model.rds`** | 1.39 MB | `./checkpoints/` | 锁定的最终影像组学 LASSO 评分模型 (R-score Model Object) |
+| **`Rscore_locked_model.rds`** | 1.39 MB | `./checkpoints/` | 锁定的最终弹性网络影像组学评分模型 (R-score Model Object) |
 
 #### 快速下载与部署指引：
 ```bash
 # 在项目根目录下创建 checkpoints 目录
 mkdir -p checkpoints
 
-# 方式一：在 Release 页面下载后，直接拷贝到 checkpoints/ 目录中
-
-# 方式二：使用 wget 命令行直接下载到指定目录
+# 使用 wget 命令行直接下载到指定目录
 wget -O checkpoints/pretrained_cmr_backbone.ckpt https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/pretrained_cmr_backbone.ckpt
 wget -O checkpoints/CatBoost_final.cbm https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/CatBoost_final.cbm
 wget -O checkpoints/Rscore_locked_model.rds https://github.com/Oubit1/CMR_HCM_OpenSource/releases/download/v1.0.0/Rscore_locked_model.rds
@@ -149,10 +145,10 @@ wget -O checkpoints/Rscore_locked_model.rds https://github.com/Oubit1/CMR_HCM_Op
 格式参考 `data_template/patient_manifest_template.csv`：
 - `ID`: 患者唯一识别编号
 - `cohort`: 所属队列 (`development` 或 `external_test`)
-- `event`: 临床结局二分类终点 (`0`: 无不良事件, `1`: 发生不良事件)
-- `Rscore`: 提取出的影像组学评分 (连续值)
+- `LGE_status`: **目标预测终点**（`1`: LGE 阳性 / Presence, `0`: LGE 阴性 / Absence）
+- `Rscore`: 舒张末期左室心肌提取并经弹性网络构建的影像组学评分 (连续值)
 - `MWT`: 最大室间隔厚度 (Maximal Wall Thickness, mm)
-- `LAs`: 左心房收缩末期面积 (Left Atrial Systolic Area, cm²)
+- `LAs`: **左心房储藏期应变 (Left Atrial Reservoir Strain, %)**
 - `LVGRS`: 左室整体放射状应变 (Global Radial Strain, %)
 - `LVGLS`: 左室整体纵向应变 (Global Longitudinal Strain, %)
 - `image_path`: 患者原始 DICOM 目录或对应 NIfTI 路径
@@ -178,18 +174,21 @@ python data_preparation/prepare_sax_nifti.py \
   --output-dir ./data/processed_sax_cine
 ```
 
-### 阶段 2: 影像组学全流程
+### 阶段 2: 影像组学全流程与 CMR 参数筛选
 ```bash
-# 1. (可选) 从 LGE ROI 图像提取高维影像组学特征
+# 1. (可选) 从舒张末期 (ED) 短轴 Cine 左室心肌 ROI 提取高维影像组学特征
 python radiomics/feature_extraction.py \
   --data-list ./data/radiomics_cases.csv \
   --output-excel ./data/Radiomics_extracted.xlsx
 
-# 2. 运行严格防泄露的 R-score 嵌套交叉验证降维
-python radiomics/build_rscore_oof.py \
-  --icc-threshold 0.80 \
-  --outer-folds 5 \
-  --output-dir ./results/rscore_oof
+# 2. 执行双人 ICC(2,1) 重测一致性筛选 (R 语言)
+Rscript radiomics/icc_reproducibility.R
+
+# 3. 运行 10 折重复嵌套交叉验证弹性网络 (Elastic Net) 构建 R-score (R 语言)
+Rscript radiomics/rscore_nested_oof_elasticnet.R
+
+# 4. 运行 10 折交叉验证 LASSO 筛选核心 CMR 临床参数 (R 语言)
+Rscript radiomics/cmr_parameter_lasso.R
 ```
 
 ### 阶段 3: 机器学习 5 种分类器评估
@@ -205,7 +204,7 @@ python models/classical_ml/run_tabular_benchmark.py \
 
 ### 阶段 4: 基础模型微调与 Attention-MIL
 ```bash
-# 全时序 Attention-MIL 微调训练
+# 全时序 Attention-MIL 端到端微调训练
 python models/deep_foundation/train_attention_mil.py \
   --manifest ./data/patient_manifest.csv \
   --slice-qc ./data/processed_sax_cine/slice_qc.csv \
@@ -259,3 +258,4 @@ chmod +x scripts/run_pipeline.sh
 }
 ```
 
+```

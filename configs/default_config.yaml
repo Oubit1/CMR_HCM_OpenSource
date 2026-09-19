@@ -1,9 +1,9 @@
 # ==============================================================================
-# CMR HCM 临床预后多模态模型默认配置文件
+# CMR HCM 基于非增强短轴 Cine 预测 LGE Presence 多模态模型配置文件
 # ==============================================================================
 
 # 项目基本信息与全局随机种子
-project_name: "CMR_HCM_Multimodal_Prognosis"
+project_name: "CMR_HCM_NonContrast_Cine_LGE_Prediction"
 seed: 42
 
 # 数据路径配置模板 (请根据本地环境修改为实际数据路径)
@@ -11,19 +11,19 @@ data:
   manifest_path: "./data_template/patient_manifest_template.csv" # 患者信息及临床特征表
   slice_qc_path: "./data_template/slice_qc_template.csv"         # 短轴 cine 切片质控与位置表
   processed_sax_dir: "./data/processed_sax_cine"                 # 处理后的 SAX cine NIfTI 目录
-  radiomics_train_path: "./data/radiomics_train.xlsx"            # 影像组学开发集特征表
+  radiomics_train_path: "./data/radiomics_train.xlsx"            # 影像组学开发集特征表 (来自舒张末期左室心肌ROI)
   radiomics_external_path: "./data/radiomics_external.xlsx"      # 影像组学外部验证集特征表
   output_dir: "./results"                                        # 实验结果输出总目录
 
 # 临床与影像组学特征列定义
 features:
-  label_col: "event"                                             # 临床结局终点 (0: 无事件, 1: 发生不良事件)
-  rscore_col: "Rscore"                                           # 影像组学评分 (R-score)
+  label_col: "LGE_status"                                        # 结局终点 (0: LGE 阴性, 1: LGE 阳性/Presence)
+  rscore_col: "Rscore"                                           # 弹性网络影像组学评分 (R-score)
   cmr_cols:                                                      # 临床 CMR 核心参数
-    - "MWT"                                                      # 最大室间隔厚度 (Maximal Wall Thickness)
-    - "LAs"                                                      # 左心房收缩末期面积 (Left Atrial Systolic Area)
-    - "LVGRS"                                                    # 左室整体放射状应变 (Global Radial Strain)
-    - "LVGLS"                                                    # 左室整体纵向应变 (Global Longitudinal Strain)
+    - "MWT"                                                      # 最大室间隔厚度 (Maximal Wall Thickness, mm)
+    - "LAs"                                                      # 左心房储藏期应变 (Left Atrial Reservoir Strain, %)
+    - "LVGRS"                                                    # 左室整体放射状应变 (Global Radial Strain, %)
+    - "LVGLS"                                                    # 左室整体纵向应变 (Global Longitudinal Strain, %)
   target_sensitivity: 0.95                                       # 临床操作点目标敏感度 (95%)
 
 # 经典机器学习模型参数 (5 大分类器)
@@ -43,7 +43,7 @@ tabular_benchmark:
 # 深度基础模型 (CMR Transformer / MViT & Attention-MIL) 配置
 foundation_model:
   architecture: "mvit_v2_s"                                      # 基础编码器骨干网络
-  pretrained_checkpoint: "./checkpoints/pretrained_cmr.ckpt"     # 预训练模型权重路径
+  pretrained_checkpoint: "./checkpoints/pretrained_cmr_backbone.ckpt" # 预训练模型权重路径
   temporal_mode: "full"                                          # 时序模式: full (全时序动态 cine) 或 ed_only (舒张末期单帧)
   max_slices: 8                                                  # 每位患者最大短轴切片输入数
   encoder_microbatch: 8                                          # 编码器微批次大小

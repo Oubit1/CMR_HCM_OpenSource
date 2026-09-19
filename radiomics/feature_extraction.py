@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-================================================================================
-模块二：影像组学全流程 - LGE 序列心肌病灶 PyRadiomics 特征提取 (feature_extraction.py)
-================================================================================
-功能描述:
-    本脚本基于 SimpleITK 与 PyRadiomics 库，实现对心脏磁共振晚期钆增强 (LGE)
-    序列中勾画的心肌 ROI 进行影像组学特征提取。
-    包含完整的图像预处理：
-      1. 多通道/单通道维度转换 (Vector to Scalar)
-      2. 统一物理空间分辨率重采样 (Resampling: 1.0 x 1.0 x 8.0 mm)
-      3. 像素灰度强度分位数裁剪与归一化 (Intensity Normalization: 1%-99% -> 0-255)
-      4. 提取原始特征 (Original)、拉普拉斯-高斯滤波 (LoG: sigma 1.0, 2.0, 3.0 mm)
-         以及小波变换 (Wavelet) 多尺度特征。
-
-输入:
-    - image_path: 患者 LGE 序列 NIfTI 图像路径
-    - mask_path: 医生勾画的心肌/纤维化 ROI 掩膜 NIfTI 路径
-
-输出:
-    - 包含 1000+ 维影像组学特征字典 (形状、一阶统计、GLCM, GLRLM, GLSZM, GLDM, NGTDM 等)
-================================================================================
-"""
+# ==============================================================================
+# 模块二：影像组学全流程 - 舒张末期短轴 Cine 序列左心室心肌 (LV Myocardium) PyRadiomics 特征提取 (feature_extraction.py)
+# ==============================================================================
+# 功能描述:
+#     本脚本基于 SimpleITK 与 PyRadiomics 库，实现对非增强短轴动态 Cine CMR
+#     在舒张末期 (End-diastolic, ED) 的左心室心肌 (LV Myocardium) ROI 进行高维影像组学特征提取。
+#     包含完整的图像预处理：
+#       1. 多通道/单通道维度转换 (Vector to Scalar)
+#       2. 统一物理空间分辨率重采样 (Resampling: 1.0 x 1.0 x 8.0 mm)
+#       3. 像素灰度强度分位数裁剪与归一化 (Intensity Normalization: 1%-99% -> 0-255)
+#       4. 提取原始特征 (Original)、拉普拉斯-高斯滤波 (LoG: sigma 1.0, 2.0, 3.0 mm)
+#          以及小波变换 (Wavelet) 多尺度特征。
+#
+# 输入:
+#     - image_path: 患者舒张末期短轴 Cine (ED SAX Cine) NIfTI 图像路径
+#     - mask_path: 医生/模型勾画的左室心肌 (LV Myocardium) ROI 掩膜 NIfTI 路径
+#
+# 输出:
+#     - 包含 1000+ 维影像组学特征字典 (形状、一阶统计、GLCM, GLRLM, GLSZM, GLDM, NGTDM 等)
+# ==============================================================================
 
 import argparse
 from pathlib import Path
@@ -126,7 +124,7 @@ def create_extractor() -> featureextractor.RadiomicsFeatureExtractor:
 
 def extract_features_single(image_path: Path, mask_path: Path) -> dict:
     """
-    对单例病例提取特征：给定原始 LGE 图像与心肌/病灶 ROI 掩膜，提取全部组学特征。
+    对单例病例提取特征：给定舒张末期短轴 cine 图像与左室心肌 (LV Myocardium) ROI 掩膜，提取全部组学特征。
     """
     # 1. 读取 NIfTI 图像与掩膜
     image = sitk.ReadImage(str(image_path))
@@ -151,13 +149,14 @@ def extract_features_single(image_path: Path, mask_path: Path) -> dict:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="批量执行 LGE CMR 影像组学特征提取")
+    parser = argparse.ArgumentParser(description="批量执行舒张末期短轴 Cine 左室心肌影像组学特征提取")
     parser.add_argument(
         "--data-list",
         type=Path,
         default=Path("./data/radiomics_cases.csv"),
         help="包含 ID, image_path, mask_path 的 CSV 列表文件路径"
     )
+
     parser.add_argument(
         "--output-excel",
         type=Path,
