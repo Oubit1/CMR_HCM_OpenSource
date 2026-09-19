@@ -233,7 +233,7 @@ python multimodal_fusion/run_foundation_comparison.py \
   --output-dir ./results/fusion_comparison
 ```
 
-### 阶段 6: 顶级期刊级统计评估与 SHAP 可解释性
+### 阶段 6: 统计评估与 SHAP 可解释性
 ```bash
 # 1. 计算 DeLong 检验、NRI、IDI、校准曲线与 DCA
 python multimodal_fusion/run_additional_statistics.py \
@@ -248,7 +248,7 @@ python multimodal_fusion/analyze_primary_xgboost_shap.py \
 
 ---
 
-## 7. 一键运行自动化流水线 (One-Click Pipeline)
+## 7. 一键运行 (One-Click Pipeline)
 
 本项目提供了预先封装好的端到端运行脚本：
 
